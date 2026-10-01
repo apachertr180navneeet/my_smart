@@ -8,8 +8,10 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ------------------------------------------------------------------------------
--- STEP 1: Temporary Helper Procedure for Idempotent Column Additions
+-- STEP 1: Temporary Helper Procedures for Idempotent Operations
 -- ------------------------------------------------------------------------------
+
+-- Procedure to safely ADD column only if it doesn't already exist
 DROP PROCEDURE IF EXISTS `add_column_if_not_exists`;
 
 DELIMITER $$
@@ -26,6 +28,30 @@ BEGIN
           AND COLUMN_NAME = col_name
     ) THEN
         SET @sql = CONCAT('ALTER TABLE `', tbl_name, '` ADD COLUMN `', col_name, '` ', col_def);
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END$$
+DELIMITER ;
+
+-- Procedure to safely MODIFY column only if it already exists
+DROP PROCEDURE IF EXISTS `modify_column_if_exists`;
+
+DELIMITER $$
+CREATE PROCEDURE `modify_column_if_exists`(
+    IN tbl_name VARCHAR(64),
+    IN col_name VARCHAR(64),
+    IN col_def TEXT
+)
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.COLUMNS 
+        WHERE TABLE_SCHEMA = DATABASE() 
+          AND TABLE_NAME = tbl_name 
+          AND COLUMN_NAME = col_name
+    ) THEN
+        SET @sql = CONCAT('ALTER TABLE `', tbl_name, '` MODIFY COLUMN `', col_name, '` ', col_def);
         PREPARE stmt FROM @sql;
         EXECUTE stmt;
         DEALLOCATE PREPARE stmt;
@@ -158,20 +184,20 @@ CALL add_column_if_not_exists('provider_documents', 'deleted_at', 'TIMESTAMP NUL
 CALL add_column_if_not_exists('service_zones', 'deleted_at', 'TIMESTAMP NULL');
 
 -- ------------------------------------------------------------------------------
--- STEP 5: Modify Existing Column Types & Nullability
+-- STEP 5: Modify Existing Column Types & Nullability (Only if Column Exists)
 -- ------------------------------------------------------------------------------
 
--- Allow nullable name in payment_gateways
-ALTER TABLE `payment_gateways` MODIFY `name` VARCHAR(255) NULL;
+-- Allow nullable name in payment_gateways (only if column exists)
+CALL modify_column_if_exists('payment_gateways', 'name', 'VARCHAR(255) NULL');
 
--- Allow nullable name in booking_statuses
-ALTER TABLE `booking_statuses` MODIFY `name` VARCHAR(255) NULL;
+-- Allow nullable name in booking_statuses (only if column exists)
+CALL modify_column_if_exists('booking_statuses', 'name', 'VARCHAR(255) NULL');
 
--- Make bookings.status varchar(255) with default 'pending'
-ALTER TABLE `bookings` MODIFY `status` VARCHAR(255) DEFAULT 'pending';
+-- Make bookings.status varchar(255) with default 'pending' (only if column exists)
+CALL modify_column_if_exists('bookings', 'status', 'VARCHAR(255) DEFAULT \'pending\'');
 
--- Make bookings.tax nullable with default 0
-ALTER TABLE `bookings` MODIFY `tax` DOUBLE NULL DEFAULT 0;
+-- Make bookings.tax nullable with default 0 (only if column exists)
+CALL modify_column_if_exists('bookings', 'tax', 'DOUBLE NULL DEFAULT 0');
 
 -- ------------------------------------------------------------------------------
 -- STEP 6: Seed Default Payment Gateways (Stripe, Razorpay, COD)
@@ -204,9 +230,10 @@ INSERT IGNORE INTO `migrations` (`migration`, `batch`) VALUES
 ('2026_10_01_160503_create_media_table', 1);
 
 -- ------------------------------------------------------------------------------
--- STEP 8: Cleanup Helper Procedure
+-- STEP 8: Cleanup Helper Procedures
 -- ------------------------------------------------------------------------------
 DROP PROCEDURE IF EXISTS `add_column_if_not_exists`;
+DROP PROCEDURE IF EXISTS `modify_column_if_exists`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 

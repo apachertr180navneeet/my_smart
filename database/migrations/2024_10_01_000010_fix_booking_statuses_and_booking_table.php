@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('booking_statuses')) {
-            if (DB::getDriverName() === 'mysql') {
+            if (DB::getDriverName() === 'mysql' && Schema::hasColumn('booking_statuses', 'name')) {
                 DB::statement("ALTER TABLE `booking_statuses` MODIFY `name` VARCHAR(255) NULL");
             }
             Schema::table('booking_statuses', function (Blueprint $table) {
@@ -31,10 +31,12 @@ return new class extends Migration
 
         if (Schema::hasTable('bookings')) {
             if (DB::getDriverName() === 'mysql') {
-                // Modify status column to varchar(255)
-                DB::statement("ALTER TABLE `bookings` MODIFY `status` VARCHAR(255) DEFAULT 'pending'");
-                // Modify tax column to nullable
-                DB::statement("ALTER TABLE `bookings` MODIFY `tax` DOUBLE NULL DEFAULT 0");
+                if (Schema::hasColumn('bookings', 'status')) {
+                    DB::statement("ALTER TABLE `bookings` MODIFY `status` VARCHAR(255) DEFAULT 'pending'");
+                }
+                if (Schema::hasColumn('bookings', 'tax')) {
+                    DB::statement("ALTER TABLE `bookings` MODIFY `tax` DOUBLE NULL DEFAULT 0");
+                }
             }
         }
     }
