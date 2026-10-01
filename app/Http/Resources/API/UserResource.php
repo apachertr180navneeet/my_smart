@@ -55,7 +55,10 @@ class UserResource extends JsonResource
             $total_services_booked = $this->handymanBooking()->count();
         }
 
-        return [
+        $authUser = auth('sanctum')->user() ?? auth()->user();
+        $canViewSensitive = $authUser && ($authUser->id === $this->id || $authUser->hasAnyRole(['admin', 'demo_admin']));
+
+        $response = [
             'id'                => $this->id,
             'first_name'        => $this->first_name,
             'last_name'         => $this->last_name,
@@ -64,14 +67,13 @@ class UserResource extends JsonResource
             'status'            => $this->status,
             'description'       => $this->description,
             'user_type'         => $this->user_type,
-            'email'             => $this->email,
-            'contact_number'    => $this->contact_number,
+            'dob'               => $this->dob ? ($this->dob instanceof \Carbon\Carbon ? $this->dob->format('Y-m-d') : substr((string)$this->dob, 0, 10)) : null,
+            'is_phone_verified' => (int) ($this->is_phone_verified ?? 0),
             'country_id'        => $this->country_id,
             'state_id'          => $this->state_id,
             'city_id'           => $this->city_id,
             'city_name'         => optional($this->city)->name,
             'address'           => $this->address,
-            'status'            => $this->status,
             'providertype_id'   => $this->providertype_id,
             'providertype'      => $this->getTranslation(optional($this->providertype)->translations, $headerValue, 'name', optional($this->providertype)->name) ?? optional($this->providertype)->name,
             'is_featured'       => $this->is_featured,
@@ -102,7 +104,13 @@ class UserResource extends JsonResource
             'why_choose_me' => $this->why_choose_me,
             'is_subscribe' => $this->is_subscribe,
             'is_email_verified' => $this->is_email_verified
-
         ];
+
+        if ($canViewSensitive) {
+            $response['email'] = $this->email;
+            $response['contact_number'] = $this->contact_number;
+        }
+
+        return $response;
     }
 }

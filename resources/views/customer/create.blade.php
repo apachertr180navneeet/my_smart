@@ -76,6 +76,17 @@
 
 
                             <div class="form-group col-md-4">
+                                {{ html()->label('Date of Birth', 'dob')->class('form-control-label') }}
+                                {{ html()->date('dob', $customerdata->dob ? ($customerdata->dob instanceof \Carbon\Carbon ? $customerdata->dob->format('Y-m-d') : substr((string)$customerdata->dob, 0, 10)) : null)->class('form-control')->placeholder('YYYY-MM-DD')->attribute('max', now()->subYears(18)->format('Y-m-d')) }}
+                                <small class="help-block with-errors text-danger"></small>
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                {{ html()->label('Phone Verified', 'is_phone_verified')->class('form-control-label') }}
+                                {{ html()->select('is_phone_verified', ['0' => 'Not Verified', '1' => 'Verified'], (string)($customerdata->is_phone_verified ?? 0))->class('form-select select2js') }}
+                            </div>
+
+                            <div class="form-group col-md-4">
                                 {{ html()->label(__('messages.status') . ' <span class="text-danger">*</span>', 'status')->class('form-control-label') }}
                                 {{ html()->select('status', ['1' => __('messages.active'), '0' => __('messages.inactive')], $customerdata->status)->class('form-select select2js')->required() }}
                             </div>

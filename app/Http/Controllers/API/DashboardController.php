@@ -608,6 +608,11 @@ class DashboardController extends Controller
         $refund_policy = Setting::getValueByKey('refund_cancellation_policy', 'refund_cancellation_policy', $headerValue);
         $data_deletion_request = Setting::getValueByKey('data_deletion_request', 'data_deletion_request', $headerValue);
         $about_us = Setting::getValueByKey('about_us', 'about_us', $headerValue);
+        $payment_policy = Setting::getValueByKey('payment_policy', 'payment_policy', $headerValue);
+        $customer_responsibility = Setting::getValueByKey('customer_responsibility', 'customer_responsibility', $headerValue);
+        $safety_policy = Setting::getValueByKey('safety_policy', 'safety_policy', $headerValue);
+        $learning_videos = Setting::getValueByKey('learning_videos', 'learning_videos');
+        $stripe_saved_cards = Setting::getValueByKey('stripe_saved_cards', 'stripe_saved_cards');
         $earning_setting = Setting::getValueByKey('earning-setting', 'earning-setting');
         $country_obj = Country::where('id', $sitesetup->default_currency)->first();
         $user = User::withTrashed()->where('id', (int)$request->input('user_id'))->first();
@@ -699,6 +704,11 @@ class DashboardController extends Controller
             "refund_policy" => $refund_policy,
             "data_deletion_request" => $data_deletion_request,
             "about_us" => $about_us,
+            "payment_policy" => !empty($payment_policy) ? $payment_policy : null,
+            "customer_responsibility" => !empty($customer_responsibility) ? $customer_responsibility : null,
+            "safety_policy" => !empty($safety_policy) ? $safety_policy : null,
+            "learning_videos" => is_array($learning_videos) ? $learning_videos : (is_string($learning_videos) ? json_decode($learning_videos, true) : ($learning_videos ? (array)$learning_videos : [])),
+            "stripe_saved_cards" => (int) ($stripe_saved_cards ?? 0),
             "earning_type" => $earning_setting,
             "auto_assign_status" => !empty($other_setting->auto_assign_provider) ? $other_setting->auto_assign_provider : 0,
             "role_and_permission" => $roleAndPermission,

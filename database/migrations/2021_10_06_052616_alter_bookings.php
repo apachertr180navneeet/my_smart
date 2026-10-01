@@ -13,11 +13,14 @@ class AlterBookings extends Migration
      */
     public function up()
     {
-        Schema::table('bookings', function (Blueprint $table) {
-            $table->unsignedBigInteger('booking_address_id')->nullable();
-            
-            $table->foreign('booking_address_id')->references('id')->on('provider_address_mappings')->onDelete('cascade');
-        });
+        if (Schema::hasTable('bookings') && !Schema::hasColumn('bookings', 'booking_address_id')) {
+            Schema::table('bookings', function (Blueprint $table) {
+                $table->unsignedBigInteger('booking_address_id')->nullable();
+                if (Schema::hasTable('provider_address_mappings')) {
+                    $table->foreign('booking_address_id')->references('id')->on('provider_address_mappings')->onDelete('cascade');
+                }
+            });
+        }
     }
 
     /**

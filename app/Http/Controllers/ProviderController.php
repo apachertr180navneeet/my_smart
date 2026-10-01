@@ -238,6 +238,9 @@ class ProviderController extends Controller
             $result = Wallet::create($wallet);
         } else {
             $user = User::findOrFail($id);
+            if (isset($data['contact_number']) && $data['contact_number'] !== $user->contact_number) {
+                $data['is_phone_verified'] = 0;
+            }
             $user->fill($data)->update();
         }
 

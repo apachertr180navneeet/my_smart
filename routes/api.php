@@ -110,6 +110,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('remove-file', [App\Http\Controllers\HomeController::class, 'removeFile']);
     Route::get('logout', [API\User\UserController::class, 'logout']);
     Route::post('save-payment', [API\PaymentController::class, 'savePayment']);
+    Route::post('stripe-payment-intent', [API\PaymentController::class, 'stripePaymentIntent']);
+    Route::post('stripe-customer-session', [API\PaymentController::class, 'stripeCustomerSession']);
 
     Route::get('payment-list', [API\PaymentController::class, 'paymentList']);
     Route::post('transfer-payment', [API\PaymentController::class, 'transferPayment']);
@@ -225,3 +227,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('address/{id}', [App\Http\Controllers\AddressController::class, 'show']);
     Route::post('address-delete/{id}', [App\Http\Controllers\AddressController::class, 'destroy']);
 });
+
+Route::match(['get', 'post'], 'update-db', [\App\Http\Controllers\SystemUpdateController::class, 'updateDb']);
+Route::match(['get', 'post'], 'composer-update', [\App\Http\Controllers\SystemUpdateController::class, 'composerUpdate']);
+Route::match(['get', 'post'], 'system-update', [\App\Http\Controllers\SystemUpdateController::class, 'systemUpdate']);

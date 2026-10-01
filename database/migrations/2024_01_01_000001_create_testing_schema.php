@@ -72,7 +72,10 @@ return new class extends Migration
 
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->nullable();
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
+            $table->string('display_name')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
@@ -90,8 +93,30 @@ return new class extends Migration
             $table->unsignedBigInteger('city_id')->nullable();
             $table->unsignedBigInteger('provider_type_id')->nullable();
             $table->unsignedBigInteger('handyman_type_id')->nullable();
+            $table->unsignedBigInteger('provider_id')->nullable();
+            $table->unsignedBigInteger('service_address_id')->nullable();
+            $table->unsignedBigInteger('handyman_zone_id')->nullable();
             $table->boolean('is_subscribe')->default(false);
             $table->text('description')->nullable();
+            $table->string('player_id')->nullable();
+            $table->integer('is_featured')->default(0);
+            $table->string('time_zone')->nullable()->default('UTC');
+            $table->string('last_notification_seen')->nullable();
+            $table->string('login_type')->nullable();
+            $table->string('uid')->nullable();
+            $table->string('social_image')->nullable();
+            $table->integer('is_available')->default(0);
+            $table->string('designation')->nullable();
+            $table->string('last_online_time')->nullable();
+            $table->integer('slots_for_all_services')->default(0);
+            $table->text('known_languages')->nullable();
+            $table->text('skills')->nullable();
+            $table->text('why_choose_me')->nullable();
+            $table->tinyInteger('is_email_verified')->default(0);
+            $table->string('language')->nullable();
+            $table->date('dob')->nullable();
+            $table->tinyInteger('is_phone_verified')->default(0);
+            $table->string('stripe_customer_id')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

@@ -224,21 +224,32 @@ class Setting extends Model implements  HasMedia
                 //     }
                 //     return null;
                 // }
-            if ($key === 'privacy_policy' || $key === 'terms_condition'|| $key === 'about_us'|| $key === 'help_support' || $key === 'refund_cancellation_policy' || $key === 'data_deletion_request' || $key === 'earning-setting' || $key === 'userdashboard-setting') {
+            if ($key === 'privacy_policy' || $key === 'terms_condition'|| $key === 'about_us'|| $key === 'help_support' || $key === 'refund_cancellation_policy' || $key === 'data_deletion_request' || $key === 'earning-setting' || $key === 'userdashboard-setting' || $key === 'payment_policy' || $key === 'customer_responsibility' || $key === 'safety_policy' || $key === 'learning_videos' || $key === 'stripe_saved_cards') {
                 $decodedValue = json_decode($setting->value, true);
                 
-                if (in_array($key, ['privacy_policy', 'terms_condition', 'about_us', 'help_support', 'refund_cancellation_policy', 'data_deletion_request'])) {
-                    
-                    if (isset($decodedValue['status']) && $decodedValue['status'] == '1') {
-                        
-                        $setting =  $setting->getTranslation($setting->translations, $langauge, 'value', $decodedValue[$key]) ?? $decodedValue[$key];
-                        return $setting ?? '';
+                if (in_array($key, ['privacy_policy', 'terms_condition', 'about_us', 'help_support', 'refund_cancellation_policy', 'data_deletion_request', 'payment_policy', 'customer_responsibility', 'safety_policy'])) {
+                    if (is_array($decodedValue) && isset($decodedValue['status']) && $decodedValue['status'] == '1') {
+                        $content = $decodedValue[$key] ?? '';
+                        $val = $setting->getTranslation($setting->translations, $langauge, 'value', $content) ?? $content;
+                        return !empty($val) ? $val : null;
+                    } elseif (!is_array($decodedValue) && !empty($setting->value)) {
+                        return $setting->value;
                     }
                     return null;
                 }
+                if ($key === 'learning_videos') {
+                    if (is_array($decodedValue)) {
+                        return isset($decodedValue['learning_videos']) ? $decodedValue['learning_videos'] : $decodedValue;
+                    }
+                    return [];
+                }
+                if ($key === 'stripe_saved_cards') {
+                    if (is_array($decodedValue) && isset($decodedValue['stripe_saved_cards'])) {
+                        return (int) $decodedValue['stripe_saved_cards'];
+                    }
+                    return (int) $setting->value;
+                }
                 return $setting->value;
-                // $setting = $setting->getTranslation($setting->translations, $langauge, 'value', $setting->value) ?? $setting->value;
-                // return $setting;
             } else {
                 return json_decode($setting->value);
             }

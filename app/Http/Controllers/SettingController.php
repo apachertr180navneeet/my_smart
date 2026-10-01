@@ -1439,4 +1439,197 @@ class SettingController extends Controller
 
         return redirect()->route('setting.index', ['page' => $page])->withSuccess($message);
     }
+
+    public function paymentPolicy(Request $request)
+    {
+        $language_array = $this->languagesArray();
+        $setting_data = Setting::where('type', 'payment_policy')->where('key', 'payment_policy')->first();
+
+        $payment_policy = '';
+        $status = '1';
+
+        if ($setting_data) {
+            $decoded_value = json_decode($setting_data->value, true);
+            $payment_policy = isset($decoded_value['payment_policy']) ? $decoded_value['payment_policy'] : '';
+            $status = isset($decoded_value['status']) ? $decoded_value['status'] : '1';
+        }
+
+        $pageTitle = 'Payment Policy';
+        $assets = ['textarea'];
+        return view('setting.payment_policy_form', compact('setting_data', 'payment_policy', 'status', 'pageTitle', 'assets', 'language_array'));
+    }
+
+    public function savePaymentPolicy(Request $request)
+    {
+        if (demoUserPermission()) {
+            return redirect()->back()->withErrors(trans('messages.demo_permission_denied'));
+        }
+
+        $status = $request->input('status') == '1' ? '1' : '0';
+
+        $setting_data = [
+            'type'  => 'payment_policy',
+            'key'   => 'payment_policy',
+            'value' => json_encode([
+                'payment_policy' => $request->input('value'),
+                'status' => $status,
+            ]),
+        ];
+
+        $language_option = sitesetupSession('get')->language_option ?? ["ar", "nl", "en", "fr", "de", "hi", "it"];
+        $primary_locale = app()->getLocale() ?? 'en';
+        $translatableAttributes = ['value'];
+        $result = Setting::updateOrCreate(['id' => $request->id], $setting_data);
+        if ($request->is('api/*')) {
+            $setting_data['translations'] = json_decode($request['translations'] ?? '{}', true);
+        } elseif (isset($request['translations']) && is_array($request['translations'])) {
+            $setting_data['translations'] = $request['translations'];
+        }
+        $result->saveTranslations($setting_data, $translatableAttributes, $language_option, $primary_locale);
+
+        $message = $result->wasRecentlyCreated ? 'Payment Policy saved successfully' : 'Payment Policy updated successfully';
+        return redirect()->route('payment-policy')->withSuccess($message);
+    }
+
+    public function customerResponsibility(Request $request)
+    {
+        $language_array = $this->languagesArray();
+        $setting_data = Setting::where('type', 'customer_responsibility')->where('key', 'customer_responsibility')->first();
+
+        $customer_responsibility = '';
+        $status = '1';
+
+        if ($setting_data) {
+            $decoded_value = json_decode($setting_data->value, true);
+            $customer_responsibility = isset($decoded_value['customer_responsibility']) ? $decoded_value['customer_responsibility'] : '';
+            $status = isset($decoded_value['status']) ? $decoded_value['status'] : '1';
+        }
+
+        $pageTitle = 'Customer Responsibility';
+        $assets = ['textarea'];
+        return view('setting.customer_responsibility_form', compact('setting_data', 'customer_responsibility', 'status', 'pageTitle', 'assets', 'language_array'));
+    }
+
+    public function saveCustomerResponsibility(Request $request)
+    {
+        if (demoUserPermission()) {
+            return redirect()->back()->withErrors(trans('messages.demo_permission_denied'));
+        }
+
+        $status = $request->input('status') == '1' ? '1' : '0';
+
+        $setting_data = [
+            'type'  => 'customer_responsibility',
+            'key'   => 'customer_responsibility',
+            'value' => json_encode([
+                'customer_responsibility' => $request->input('value'),
+                'status' => $status,
+            ]),
+        ];
+
+        $language_option = sitesetupSession('get')->language_option ?? ["ar", "nl", "en", "fr", "de", "hi", "it"];
+        $primary_locale = app()->getLocale() ?? 'en';
+        $translatableAttributes = ['value'];
+        $result = Setting::updateOrCreate(['id' => $request->id], $setting_data);
+        if ($request->is('api/*')) {
+            $setting_data['translations'] = json_decode($request['translations'] ?? '{}', true);
+        } elseif (isset($request['translations']) && is_array($request['translations'])) {
+            $setting_data['translations'] = $request['translations'];
+        }
+        $result->saveTranslations($setting_data, $translatableAttributes, $language_option, $primary_locale);
+
+        $message = $result->wasRecentlyCreated ? 'Customer Responsibility saved successfully' : 'Customer Responsibility updated successfully';
+        return redirect()->route('customer-responsibility')->withSuccess($message);
+    }
+
+    public function safetyPolicy(Request $request)
+    {
+        $language_array = $this->languagesArray();
+        $setting_data = Setting::where('type', 'safety_policy')->where('key', 'safety_policy')->first();
+
+        $safety_policy = '';
+        $status = '1';
+
+        if ($setting_data) {
+            $decoded_value = json_decode($setting_data->value, true);
+            $safety_policy = isset($decoded_value['safety_policy']) ? $decoded_value['safety_policy'] : '';
+            $status = isset($decoded_value['status']) ? $decoded_value['status'] : '1';
+        }
+
+        $pageTitle = 'Safety Policy';
+        $assets = ['textarea'];
+        return view('setting.safety_policy_form', compact('setting_data', 'safety_policy', 'status', 'pageTitle', 'assets', 'language_array'));
+    }
+
+    public function saveSafetyPolicy(Request $request)
+    {
+        if (demoUserPermission()) {
+            return redirect()->back()->withErrors(trans('messages.demo_permission_denied'));
+        }
+
+        $status = $request->input('status') == '1' ? '1' : '0';
+
+        $setting_data = [
+            'type'  => 'safety_policy',
+            'key'   => 'safety_policy',
+            'value' => json_encode([
+                'safety_policy' => $request->input('value'),
+                'status' => $status,
+            ]),
+        ];
+
+        $language_option = sitesetupSession('get')->language_option ?? ["ar", "nl", "en", "fr", "de", "hi", "it"];
+        $primary_locale = app()->getLocale() ?? 'en';
+        $translatableAttributes = ['value'];
+        $result = Setting::updateOrCreate(['id' => $request->id], $setting_data);
+        if ($request->is('api/*')) {
+            $setting_data['translations'] = json_decode($request['translations'] ?? '{}', true);
+        } elseif (isset($request['translations']) && is_array($request['translations'])) {
+            $setting_data['translations'] = $request['translations'];
+        }
+        $result->saveTranslations($setting_data, $translatableAttributes, $language_option, $primary_locale);
+
+        $message = $result->wasRecentlyCreated ? 'Safety Policy saved successfully' : 'Safety Policy updated successfully';
+        return redirect()->route('safety-policy')->withSuccess($message);
+    }
+
+    public function learningVideos(Request $request)
+    {
+        $setting_data = Setting::where('type', 'learning_videos')->where('key', 'learning_videos')->first();
+        $videos = [];
+        if ($setting_data && !empty($setting_data->value)) {
+            $decoded = json_decode($setting_data->value, true);
+            $videos = is_array($decoded) ? (isset($decoded['learning_videos']) ? $decoded['learning_videos'] : $decoded) : [];
+        }
+        $pageTitle = 'Learning Videos';
+        return view('setting.learning_videos_form', compact('setting_data', 'videos', 'pageTitle'));
+    }
+
+    public function saveLearningVideos(Request $request)
+    {
+        if (demoUserPermission()) {
+            return redirect()->back()->withErrors(trans('messages.demo_permission_denied'));
+        }
+
+        $titles = $request->input('titles', []);
+        $urls = $request->input('urls', []);
+        $videos = [];
+
+        foreach ($titles as $index => $title) {
+            $url = $urls[$index] ?? '';
+            if (!empty($title) || !empty($url)) {
+                $videos[] = [
+                    'title' => $title,
+                    'url' => $url,
+                ];
+            }
+        }
+
+        Setting::updateOrCreate(
+            ['type' => 'learning_videos', 'key' => 'learning_videos'],
+            ['value' => json_encode($videos)]
+        );
+
+        return redirect()->route('learning-videos')->withSuccess('Learning Videos updated successfully');
+    }
 }

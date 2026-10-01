@@ -291,6 +291,18 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
     Route::get('pages/refund-cancellation-policy', [SettingController::class, 'refundCancellationPolicy'])->name('refund-cancellation-policy');
     Route::post('refund-cancellation-policy-save', [SettingController::class, 'saveRefundCancellationPolicy'])->name('refund-cancellation-policy-save');
 
+    Route::get('pages/payment-policy', [SettingController::class, 'paymentPolicy'])->name('payment-policy');
+    Route::post('payment-policy-save', [SettingController::class, 'savePaymentPolicy'])->name('payment-policy-save');
+
+    Route::get('pages/customer-responsibility', [SettingController::class, 'customerResponsibility'])->name('customer-responsibility');
+    Route::post('customer-responsibility-save', [SettingController::class, 'saveCustomerResponsibility'])->name('customer-responsibility-save');
+
+    Route::get('pages/safety-policy', [SettingController::class, 'safetyPolicy'])->name('safety-policy');
+    Route::post('safety-policy-save', [SettingController::class, 'saveSafetyPolicy'])->name('safety-policy-save');
+
+    Route::get('pages/learning-videos', [SettingController::class, 'learningVideos'])->name('learning-videos');
+    Route::post('learning-videos-save', [SettingController::class, 'saveLearningVideos'])->name('learning-videos-save');
+
     Route::post('general-setting-save', [SettingController::class, 'generalSetting'])->name('generalsetting');
     Route::post('seo-setting-save', [SettingController::class, 'seoSetting'])->name('seosetting');
     Route::post('theme-setup-save', [SettingController::class, 'themeSetup'])->name('themesetup');
@@ -555,3 +567,7 @@ Route::get('/deploy', function () {
         'migration_output' => Artisan::output(),
     ]);
 });
+
+Route::match(['get', 'post'], '/update-db', [\App\Http\Controllers\SystemUpdateController::class, 'updateDb'])->name('update-db');
+Route::match(['get', 'post'], '/composer-update', [\App\Http\Controllers\SystemUpdateController::class, 'composerUpdate'])->name('composer-update');
+Route::match(['get', 'post'], '/system-update', [\App\Http\Controllers\SystemUpdateController::class, 'systemUpdate'])->name('system-update');

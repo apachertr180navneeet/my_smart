@@ -71,7 +71,16 @@
     <small class="help-block with-errors text-danger"></small>
 </div>
 
-    
+<div class="form-group col-md-12">
+    <div class="form-control d-flex align-items-center justify-content-between">
+        <label for="stripe_saved_cards" class="mb-0">Enable Saved Cards (stripe_saved_cards)</label>
+        <div class="custom-control custom-switch custom-switch-text custom-switch-color custom-control-inline">
+            <input type="checkbox" class="custom-control-input" name="stripe_saved_cards" id="stripe_saved_cards" value="1" {{ (\App\Models\Setting::getValueByKey('stripe_saved_cards') == 1) ? 'checked' : '' }}>
+            <label class="custom-control-label" for="stripe_saved_cards"></label>
+        </div>
+    </div>
+    <small class="text-muted">Toggle whether mobile application can use the Stripe Saved Cards feature (0 = Disabled, 1 = Enabled).</small>
+</div>
  </div>
  {{ html()->submit(__('messages.save'))->class('btn btn-md btn-primary float-md-end') }}
  {{ html()->form()->close() }}

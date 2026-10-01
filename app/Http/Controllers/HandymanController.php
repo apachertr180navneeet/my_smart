@@ -257,6 +257,9 @@ class HandymanController extends Controller
             $result = Wallet::create($wallet);
         } else {
             $user = User::findOrFail($id);
+            if (isset($data['contact_number']) && $data['contact_number'] !== $user->contact_number) {
+                $data['is_phone_verified'] = 0;
+            }
             // User data...
             // $user->removeRole($user->user_type);
             $user->fill($data)->update();

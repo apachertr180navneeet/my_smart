@@ -19,6 +19,9 @@ use App\Models\Service;
 use App\Models\Setting;
 use DB;
 use App\Models\CommissionEarning;
+use App\Services\StripeService;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -28,9 +31,36 @@ class PaymentController extends Controller
     public function savePayment(Request $request)
     {
         $data = $request->all();
+        $booking = Booking::find($request->booking_id);
+        if (!$booking) {
+            return comman_message_response(__('messages.booking_not_found') ?? 'Booking not found.', 404);
+        }
+
+        if ($request->payment_type == 'stripe') {
+            if (!$request->filled('txn_id')) {
+                return comman_message_response(__('messages.payment_failed') ?? 'Transaction ID is required for Stripe payment.', 400);
+            }
+
+            $user = auth('sanctum')->user() ?? auth()->user() ?? User::find($request->customer_id);
+            $expectedAmount = (float) $request->total_amount;
+            if ($request->payment_status == 'advanced_paid' && $request->filled('advance_payment_amount')) {
+                $expectedAmount = (float) $request->advance_payment_amount;
+            } elseif (!empty($booking->total_amount) && empty($expectedAmount)) {
+                $expectedAmount = (float) $booking->total_amount;
+            }
+
+            $stripeService = new StripeService();
+            $verification = $stripeService->verifyPaymentIntent($request->txn_id, $expectedAmount, $user);
+
+            if (!$verification['success']) {
+                return comman_message_response($verification['message'], 400);
+            }
+
+            $data['payment_status'] = ($request->payment_status == 'advanced_paid') ? 'advanced_paid' : 'paid';
+        }
+
         $data['datetime'] = isset($request->datetime) ? date('Y-m-d H:i:s',strtotime($request->datetime)) : date('Y-m-d H:i:s');
         $result = Payment::create($data);
-        $booking = Booking::find($request->booking_id);
         if(!empty($result) && $result->payment_status == 'advanced_paid'){
             $booking->advance_paid_amount  = $request->advance_payment_amount;
             $booking->status  = 'pending';
@@ -425,5 +455,54 @@ class PaymentController extends Controller
         $payment = PaymentGatewayResource::collection($payment);
 
         return comman_custom_response($payment);
+    }
+
+    public function stripePaymentIntent(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required|numeric|min:1',
+            'currency' => 'nullable|string|size:3',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+                'all_message' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = auth('sanctum')->user() ?? auth()->user();
+        if (!$user) {
+            return comman_message_response('Unauthenticated.', 401);
+        }
+
+        $currency = $request->input('currency', 'usd');
+
+        try {
+            $stripeService = new StripeService();
+            $result = $stripeService->createPaymentIntent($user, $request->amount, $currency);
+            return comman_custom_response($result);
+        } catch (\Exception $e) {
+            Log::error('Stripe Payment Intent Error: ' . $e->getMessage());
+            return comman_message_response('Unable to initialize Stripe payment. Please check payment configuration or try again later.', 500);
+        }
+    }
+
+    public function stripeCustomerSession(Request $request)
+    {
+        $user = auth('sanctum')->user() ?? auth()->user();
+        if (!$user) {
+            return comman_message_response('Unauthenticated.', 401);
+        }
+
+        try {
+            $stripeService = new StripeService();
+            $result = $stripeService->createCustomerSession($user);
+            return comman_custom_response($result);
+        } catch (\Exception $e) {
+            Log::error('Stripe Customer Session Error: ' . $e->getMessage());
+            return comman_message_response('Unable to create customer session. Please try again later.', 500);
+        }
     }
 }

@@ -30,9 +30,23 @@ class UserRequest extends FormRequest
         $rules = [
             'username'       => 'required|max:255|unique:users,username,' . $id,
             'email'          => 'required|email|max:255|unique:users,email,' . $id,
-            'contact_number' => 'required', 'unique:users,contact_number,' . $id,
+            'contact_number' => 'required|unique:users,contact_number,' . $id,
             'profile_image'  => 'nullable|mimetypes:image/jpeg,image/png,image/jpg,image/gif',
         ];
+
+        if ($this->is('api/register') || ($this->is('api/*') && empty($id) && $this->isMethod('post') && !$this->is('api/update-profile'))) {
+            $rules['dob'] = [
+                'required',
+                'date',
+                'before_or_equal:' . now()->subYears(18)->format('Y-m-d')
+            ];
+        } else {
+            $rules['dob'] = [
+                'nullable',
+                'date',
+                'before_or_equal:' . now()->subYears(18)->format('Y-m-d')
+            ];
+        }
 
         // Only validate documents if provider is registering
         if ($this->input('user_type') === 'provider' && request()->is('api/*')) {
@@ -75,7 +89,10 @@ class UserRequest extends FormRequest
     public function messages()
     {
         return [
-            'profile_image.*' => __('messages.image_png_gif')
+            'profile_image.*' => __('messages.image_png_gif'),
+            'dob.required' => 'DOB is required and user must be at least 18 years old.',
+            'dob.date' => 'The date of birth must be a valid date.',
+            'dob.before_or_equal' => 'DOB is required and user must be at least 18 years old.'
         ];
     }
 

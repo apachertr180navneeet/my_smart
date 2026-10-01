@@ -1052,6 +1052,46 @@
     )
     ->link->attr(['class' => '']);
 
+        $menu->pages
+            ->add('<span>Payment Policy</span>', [
+                'class' => 'sidebar-layout',
+                'route' => 'payment-policy',
+            ])
+            ->prepend(
+                '<svg width="15" height="15" class="sidebar-menu-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 3h14v10H1V3zm2 2v2h3V5H3zm0 4v2h3V9H3z" fill="#6C757D"/></svg>',
+            )
+            ->link->attr(['class' => '']);
+
+        $menu->pages
+            ->add('<span>Customer Responsibility</span>', [
+                'class' => 'sidebar-layout',
+                'route' => 'customer-responsibility',
+            ])
+            ->prepend(
+                '<svg width="15" height="15" class="sidebar-menu-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#6C757D"/></svg>',
+            )
+            ->link->attr(['class' => '']);
+
+        $menu->pages
+            ->add('<span>Safety Policy</span>', [
+                'class' => 'sidebar-layout',
+                'route' => 'safety-policy',
+            ])
+            ->prepend(
+                '<svg width="15" height="15" class="sidebar-menu-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 1L1 4v4c0 4.52 2.98 8.69 7 9.93 4.02-1.24 7-5.41 7-9.93V4L8 1z" fill="#6C757D"/></svg>',
+            )
+            ->link->attr(['class' => '']);
+
+        $menu->pages
+            ->add('<span>Learning Videos</span>', [
+                'class' => 'sidebar-layout',
+                'route' => 'learning-videos',
+            ])
+            ->prepend(
+                '<svg width="15" height="15" class="sidebar-menu-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 3l9 5-9 5V3z" fill="#6C757D"/></svg>',
+            )
+            ->link->attr(['class' => '']);
+
 
         $menu
             ->add(

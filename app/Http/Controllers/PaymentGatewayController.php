@@ -194,6 +194,11 @@ class PaymentGatewayController extends Controller
                     'stripe_key' => $data['stripe_key'],
                     'stripe_publickey' => $data['stripe_publickey']
                 ];
+                $stripe_saved_cards = isset($request->stripe_saved_cards) ? 1 : 0;
+                \App\Models\Setting::updateOrCreate(
+                    ['type' => 'stripe_saved_cards', 'key' => 'stripe_saved_cards'],
+                    ['value' => $stripe_saved_cards]
+                );
                 break;
 
             case 'razorPay':

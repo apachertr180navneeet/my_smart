@@ -298,6 +298,8 @@ class UserController extends Controller
                 }
             }
             $success['is_verify_provider'] = (int) $is_verify_provider;
+            $success['dob'] = $user->dob ? ($user->dob instanceof \Carbon\Carbon ? $user->dob->format('Y-m-d') : substr((string)$user->dob, 0, 10)) : null;
+            $success['is_phone_verified'] = (int) ($user->is_phone_verified ?? 0);
             unset($success['media']);
             unset($user['roles']);
 
@@ -535,21 +537,48 @@ class UserController extends Controller
 
     public function updateProfile(Request $request)
     {
-        $user = \Auth::user();
-        if ($request->has('id') && !empty($request->id)) {
-            $user = User::where('id', $request->id)->first();
-        }
+        $user = auth()->user() ?? \Auth::user();
         if ($user == null) {
-            return comman_message_response(__('messages.no_record_found'), 400);
+            return comman_message_response(__('messages.no_record_found'), 401);
         }
 
         $data = $request->all();
 
-        if (isset($data['first_name']) || isset($data['last_name'])) {
-            $firstName = $data['first_name'] ?? $user->first_name;
-            $lastName = $data['last_name'] ?? $user->last_name;
-            $data['display_name'] = trim($firstName . ' ' . $lastName);
+        // Security Restriction: Ignored fields from update-profile
+        unset(
+            $data['first_name'],
+            $data['last_name'],
+            $data['username'],
+            $data['email'],
+            $data['contact_number'],
+            $data['display_name'],
+            $data['id'],
+            $data['user_type'],
+            $data['password'],
+            $data['status'],
+            $data['is_subscribe']
+        );
+
+        // DOB Lock Logic: DOB can only be saved if existing database value is NULL
+        if (is_null($user->dob) && $request->filled('dob')) {
+            $request->validate([
+                'dob' => ['date', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')]
+            ], [
+                'dob.date' => 'The date of birth must be a valid date.',
+                'dob.before_or_equal' => 'DOB is required and user must be at least 18 years old.'
+            ]);
+            $user->dob = $request->dob;
         }
+        unset($data['dob']);
+
+        // Phone Verification: only allow 0 or 1
+        if ($request->has('is_phone_verified')) {
+            $phoneVerified = (int) $request->is_phone_verified;
+            if (in_array($phoneVerified, [0, 1], true)) {
+                $user->is_phone_verified = $phoneVerified;
+            }
+        }
+        unset($data['is_phone_verified']);
 
         $why_choose_me = [
             'title' => $data['title'] ?? null,
@@ -563,9 +592,9 @@ class UserController extends Controller
 
         $data['why_choose_me'] = ($why_choose_me);
 
-        $user->fill($data)->update();
+        $user->fill($data)->save();
 
-        $provider_zone = ProviderZoneMapping::where('provider_id', $request->id)->pluck('zone_id')->toArray();
+        $provider_zone = ProviderZoneMapping::where('provider_id', $user->id)->pluck('zone_id')->toArray();
 
         // Ensure $request->service_zones is always an array
         $service_zones = $request->service_zones;
@@ -583,10 +612,9 @@ class UserController extends Controller
 
         $removeZone = array_diff($provider_zone, $service_zones);
 
-        $services = Service::where('provider_id', $request->id)->pluck('id')->toArray();
+        $services = Service::where('provider_id', $user->id)->pluck('id')->toArray();
 
         ServiceZoneMapping::whereIn('service_id', $services)->whereIn('zone_id', $removeZone)->delete();
-
 
         if ($user->user_type === 'provider' && isset($data['service_zones'])) {
             try {
@@ -640,12 +668,14 @@ class UserController extends Controller
         }
 
         $user_data['user_role'] = $user->getRoleNames();
-        $user_data['zones'] = $user_data->zones->map(function ($zone) {
+        $user_data['dob'] = $user_data->dob ? ($user_data->dob instanceof \Carbon\Carbon ? $user_data->dob->format('Y-m-d') : substr((string)$user_data->dob, 0, 10)) : null;
+        $user_data['is_phone_verified'] = (int) ($user_data->is_phone_verified ?? 0);
+        $user_data['zones'] = $user_data->zones ? $user_data->zones->map(function ($zone) {
             return [
                 'id' => (int)$zone->id,
                 'name' => $zone->name
             ];
-        })->values()->toArray();
+        })->values()->toArray() : [];
         unset($user_data['available_zones']);
         unset($user_data['roles']);
         unset($user_data['media']);

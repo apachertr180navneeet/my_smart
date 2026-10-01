@@ -58,7 +58,10 @@ class User extends Authenticatable implements HasMedia
         'description',
         'why_choose_me',
         'is_email_verified',
-        'language'
+        'language',
+        'dob',
+        'is_phone_verified',
+        'stripe_customer_id'
     ];
 
     /**
@@ -91,7 +94,9 @@ class User extends Authenticatable implements HasMedia
         'is_subscribe'            => 'integer',
         'is_available'            => 'integer',
         'slots_for_all_services' => 'integer',
-        'is_email_verified'    => 'integer'
+        'is_email_verified'    => 'integer',
+        'is_phone_verified'    => 'integer',
+        'dob'                  => 'date:Y-m-d'
     ];
 
     protected static function boot()
