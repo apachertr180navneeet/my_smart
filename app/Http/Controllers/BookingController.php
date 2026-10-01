@@ -496,8 +496,76 @@ class BookingController extends Controller
             $data['date'] = isset($request->date) ? date('Y-m-d H:i:s', strtotime($request->date)) : date('Y-m-d H:i:s');
         }
         $service_data = Service::find($data['service_id']);
+        if (!$service_data) {
+            $message = __('messages.not_found_entry', ['name' => __('messages.service')]);
+            return comman_message_response($message, 404);
+        }
 
         $data['provider_id'] = !empty($data['provider_id']) ? $data['provider_id'] : $service_data->provider_id;
+
+        if ($request->has('service_preference') && !empty($request->service_preference)) {
+            $prefType = $request->service_preference;
+            $allowedTypes = ['provider_location', 'customer_location', 'virtual'];
+            if (!in_array($prefType, $allowedTypes)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Invalid service preference: ' . $prefType,
+                ], 422);
+            }
+
+            $servicePreferences = is_string($service_data->service_preferences)
+                ? json_decode($service_data->service_preferences, true)
+                : $service_data->service_preferences;
+
+            $selectedPreference = collect($servicePreferences)->firstWhere('type', $prefType);
+            if (!$selectedPreference) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Selected service preference is not available for this service.',
+                ], 422);
+            }
+
+            $authoritativePrice = (float) $selectedPreference['price'];
+            $data['service_preference'] = $prefType;
+            $data['amount'] = $authoritativePrice;
+
+            // Recalculate booking total_amount server-side using authoritative preference price
+            $quantity = !empty($data['quantity']) ? (int) $data['quantity'] : 1;
+            $subtotal = $authoritativePrice * $quantity;
+
+            $discount = 0;
+            if (!empty($service_data->discount) && $service_data->discount > 0) {
+                $discount = ($subtotal * $service_data->discount) / 100;
+            }
+
+            $data['discount'] = $discount;
+            $totalAmount = max(0, $subtotal - $discount);
+
+            if ($request->has('extra_charges') && is_array($request->extra_charges)) {
+                foreach ($request->extra_charges as $charge) {
+                    $totalAmount += ((float) ($charge['price'] ?? 0)) * ((int) ($charge['qty'] ?? 1));
+                }
+            }
+
+            if ($request->has('service_addon_id') && is_array($request->service_addon_id)) {
+                $addonsTotal = \App\Models\ServiceAddon::whereIn('id', $request->service_addon_id)->sum('price');
+                $totalAmount += $addonsTotal;
+            }
+
+            $data['total_amount'] = $totalAmount;
+
+            // Address logic per Section 15
+            if ($prefType === 'virtual') {
+                $data['address'] = null;
+                $data['booking_address_id'] = null;
+            } elseif ($prefType === 'provider_location') {
+                $providerAddress = ProviderAddressMapping::where('provider_id', $service_data->provider_id)->where('status', 1)->first();
+                if ($providerAddress) {
+                    $data['booking_address_id'] = $providerAddress->id;
+                    $data['address'] = $providerAddress->address;
+                }
+            }
+        }
 
         if ($request->has('tax') && $request->tax != null) {
             $data['tax'] = json_encode($request->tax);
@@ -542,7 +610,7 @@ class BookingController extends Controller
         $this->sendNotification($activity_data);
 
 
-        if ($data['coupon_id'] != null) {
+        if (!empty($data['coupon_id'])) {
             $coupons = Coupon::find($data['coupon_id']);
 
             $coupon_data = [

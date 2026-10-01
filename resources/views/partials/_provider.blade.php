@@ -45,5 +45,8 @@
         <li class="nav-item {{request()->routeIs('provider.time-slot') ? 'active' : ''}}">
             <a class="nav-link" href="{{ route('provider.time-slot',$providerdata->id) }}">{{__('messages.list_form_title',['form' => __('messages.manage_slot')])}}</a>
         </li>
+        <li class="nav-item {{request()->routeIs('provider.requirements') ? 'active' : ''}}">
+            <a class="nav-link" href="{{ route('provider.requirements', $providerdata->id) }}">Requirements</a>
+        </li>
     </ul>
 </div>

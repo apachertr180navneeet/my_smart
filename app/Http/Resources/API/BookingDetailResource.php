@@ -97,6 +97,13 @@ class BookingDetailResource extends JsonResource
             'cancellation_charge_amount' => $cacellationcharges,
             'refund_amount' => $advancepaid > 0 ?  $advancepaid - $cacellationcharges : 0,
             'refund_status' =>  $advancepaid > 0 ? 'completed'  : null,
+            'service_preference' => $this->service_preference,
+            'service_preference_label' => match($this->service_preference) {
+                'provider_location' => 'Service at Location',
+                'customer_location' => 'Service at Customer Location',
+                'virtual'           => 'Virtual / Consultant',
+                default             => null,
+            },
             // 'handyman'              => isset($this->handymanAdded) ? $this->handymanAdded : [],
             // 'handyman_image'        => getSingleMedia($this->handyman, 'profile_image', null),
         ];

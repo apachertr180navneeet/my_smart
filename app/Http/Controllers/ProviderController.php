@@ -739,4 +739,46 @@ class ProviderController extends Controller
 
         return view('provider.edittimeslot', compact('auth_user', 'slotsArray', 'pageTitle', 'activeDay', 'provider_id', 'activeSlots', 'providerdata'));
     }
+
+    public function providerRequirements($id)
+    {
+        $auth_user = authSession();
+        $providerdata = User::where('user_type', 'provider')->where('id', $id)->firstOrFail();
+        $companyRequirements = \App\Models\ProviderRequirement::where('provider_id', $id)->whereNull('handyman_id')->get()->keyBy('key');
+        $handymen = User::where('user_type', 'handyman')->where('provider_id', $id)->with(['handymanRequirements'])->get();
+        $pageTitle = 'Provider Requirements: ' . $providerdata->display_name;
+
+        return view('provider.requirements', compact('auth_user', 'providerdata', 'companyRequirements', 'handymen', 'pageTitle'));
+    }
+
+    public function updateRequirementStatus(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|integer',
+            'status' => 'required|in:approved,rejected,pending',
+            'remarks' => 'nullable|string',
+        ]);
+
+        $requirement = \App\Models\ProviderRequirement::findOrFail($request->id);
+        $requirement->status = $request->status;
+        $requirement->remarks = $request->remarks;
+        $requirement->save();
+
+        $provider = User::find($requirement->provider_id);
+        if ($provider) {
+            $readableKey = str_replace('_', ' ', ucwords($requirement->key, '_'));
+            $notificationData = [
+                'id' => (string) $requirement->id,
+                'type' => 'provider_requirement',
+                'subject' => 'Requirement ' . ucfirst($requirement->status),
+                'message' => 'Your document ' . $readableKey . ' has been marked as ' . $requirement->status . '.' . ($requirement->remarks ? ' Remarks: ' . $requirement->remarks : ''),
+                'notification-type' => 'provider_requirement',
+            ];
+            if (function_exists('saveNotification')) {
+                saveNotification($notificationData, $provider);
+            }
+        }
+
+        return redirect()->back()->withSuccess('Requirement status updated successfully.');
+    }
 }

@@ -139,6 +139,8 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::post('provider-bulk-action', [ProviderController::class, 'bulk_action'])->name('provider.bulk-action');
     });
     Route::get('provider_info/{id}', [ProviderController::class, 'show'])->name('provider_info');
+    Route::get('provider-requirements/{id}', [ProviderController::class, 'providerRequirements'])->name('provider.requirements');
+    Route::post('provider/requirement-status', [ProviderController::class, 'updateRequirementStatus'])->name('provider.requirement.status');
 
     Route::group(['middleware' => ['permission:provideraddress list']], function () {
         Route::resource('provideraddress', ProviderAddressMappingController::class);

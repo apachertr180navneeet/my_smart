@@ -44,7 +44,7 @@ class Booking extends Model
         'cancellation_charge',
         'cancellation_charge_amount',
         'zone_id',
-
+        'service_preference',
     ];
 
     protected $casts = [

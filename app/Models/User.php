@@ -383,4 +383,14 @@ class User extends Authenticatable implements HasMedia
     {
         return $this->belongsToMany(ServiceZone::class, 'provider_zone_mappings', 'provider_id', 'zone_id');
     }
+
+    public function providerRequirements()
+    {
+        return $this->hasMany(ProviderRequirement::class, 'provider_id');
+    }
+
+    public function handymanRequirements()
+    {
+        return $this->hasMany(ProviderRequirement::class, 'handyman_id');
+    }
 }

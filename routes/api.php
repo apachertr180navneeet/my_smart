@@ -226,6 +226,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('address-list', [App\Http\Controllers\AddressController::class, 'index']);
     Route::get('address/{id}', [App\Http\Controllers\AddressController::class, 'show']);
     Route::post('address-delete/{id}', [App\Http\Controllers\AddressController::class, 'destroy']);
+
+    Route::get('provider-requirements', [API\ProviderRequirementController::class, 'getRequirements']);
+    Route::post('provider-requirement-save', [API\ProviderRequirementController::class, 'saveRequirement']);
+    Route::post('provider-requirement-verify', [API\ProviderRequirementController::class, 'verifyRequirement']);
 });
 
 Route::match(['get', 'post'], 'update-db', [\App\Http\Controllers\SystemUpdateController::class, 'updateDb']);

@@ -104,6 +104,7 @@ class ServiceDetailResource extends JsonResource
                     ]
                 ];
             }),
+            'service_preferences' => is_string($this->service_preferences) ? json_decode($this->service_preferences, true) : ($this->service_preferences ?? []),
         ];
     }
 }

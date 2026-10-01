@@ -634,7 +634,39 @@ class ServiceController extends Controller
             $services['service_type'] = 'user_post_service';
         }
 
-        
+        if ($request->has('service_preferences')) {
+            $preferences = $request->service_preferences;
+            if (is_string($preferences)) {
+                $preferences = json_decode($preferences, true);
+            }
+
+            if (is_array($preferences) && !empty($preferences)) {
+                $providerId = (int) $services['provider_id'];
+                $reqService = new \App\Services\ServicePreferenceRequirementService();
+                $check = $reqService->validatePreferencesForSave($providerId, $preferences);
+                if (!$check['valid']) {
+                    if ($request->is('api/*') || $request->wantsJson()) {
+                        return response()->json([
+                            'status' => 'false',
+                            'message' => $check['message']
+                        ], 422);
+                    }
+                    return redirect()->back()->withErrors($check['message'])->withInput();
+                }
+
+                $minPrice = collect($preferences)->min('price');
+                $services['price'] = (float) $minPrice;
+
+                $prefTypes = collect($preferences)->pluck('type')->all();
+                if (count($prefTypes) === 1 && $prefTypes[0] === 'virtual') {
+                    $services['visit_type'] = 'online';
+                } else {
+                    $services['visit_type'] = 'on_site';
+                }
+
+                $services['service_preferences'] = $preferences;
+            }
+        }
 
         if ($request->id == null && default_earning_type() === 'subscription') {
             $exceed =  get_provider_plan_limit($services['provider_id'], 'service');

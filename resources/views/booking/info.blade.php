@@ -109,6 +109,31 @@ $datetime = $sitesetup ? json_decode($sitesetup->value) : null;
                                 </div>
                             </div>
                             
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <p class="opacity-75 fz-12">Service Preference</p>
+                                        @php
+                                            $prefLabel = match($bookingdata->service_preference) {
+                                                'provider_location' => 'Service at Location',
+                                                'customer_location' => 'Service at Customer Location',
+                                                'virtual'           => 'Virtual / Consultant',
+                                                default             => $bookingdata->service_preference ?? 'Standard',
+                                            };
+                                            $prefClass = match($bookingdata->service_preference) {
+                                                'provider_location' => 'bg-info-subtle text-info',
+                                                'customer_location' => 'bg-success-subtle text-success',
+                                                'virtual'           => 'bg-primary-subtle text-primary',
+                                                default             => 'bg-light text-secondary',
+                                            };
+                                        @endphp
+                                        <p class="mb-0 font-weight-bold">
+                                            <span class="badge {{ $prefClass }} fs-6">{{ $prefLabel }}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Add Cancellation Reason Card -->
                             @if($bookingdata->status === 'cancelled')
                             <div class="col-md-4">
