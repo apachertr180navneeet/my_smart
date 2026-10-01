@@ -13,7 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('booking_statuses')) {
-            DB::statement("ALTER TABLE `booking_statuses` MODIFY `name` VARCHAR(255) NULL");
+            if (DB::getDriverName() === 'mysql') {
+                DB::statement("ALTER TABLE `booking_statuses` MODIFY `name` VARCHAR(255) NULL");
+            }
             Schema::table('booking_statuses', function (Blueprint $table) {
                 if (!Schema::hasColumn('booking_statuses', 'value')) {
                     $table->string('value')->nullable()->after('id');
@@ -28,10 +30,12 @@ return new class extends Migration
         }
 
         if (Schema::hasTable('bookings')) {
-            // Modify status column to varchar(255)
-            DB::statement("ALTER TABLE `bookings` MODIFY `status` VARCHAR(255) DEFAULT 'pending'");
-            // Modify tax column to nullable
-            DB::statement("ALTER TABLE `bookings` MODIFY `tax` DOUBLE NULL DEFAULT 0");
+            if (DB::getDriverName() === 'mysql') {
+                // Modify status column to varchar(255)
+                DB::statement("ALTER TABLE `bookings` MODIFY `status` VARCHAR(255) DEFAULT 'pending'");
+                // Modify tax column to nullable
+                DB::statement("ALTER TABLE `bookings` MODIFY `tax` DOUBLE NULL DEFAULT 0");
+            }
         }
     }
 
