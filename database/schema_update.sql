@@ -23,9 +23,9 @@ CREATE PROCEDURE `add_column_if_not_exists`(
 BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM information_schema.COLUMNS 
-        WHERE TABLE_SCHEMA = DATABASE() 
-          AND TABLE_NAME = tbl_name 
-          AND COLUMN_NAME = col_name
+        WHERE TABLE_SCHEMA = BINARY DATABASE() 
+          AND TABLE_NAME = BINARY tbl_name 
+          AND COLUMN_NAME = BINARY col_name
     ) THEN
         SET @sql = CONCAT('ALTER TABLE `', tbl_name, '` ADD COLUMN `', col_name, '` ', col_def);
         PREPARE stmt FROM @sql;
@@ -47,9 +47,9 @@ CREATE PROCEDURE `modify_column_if_exists`(
 BEGIN
     IF EXISTS (
         SELECT 1 FROM information_schema.COLUMNS 
-        WHERE TABLE_SCHEMA = DATABASE() 
-          AND TABLE_NAME = tbl_name 
-          AND COLUMN_NAME = col_name
+        WHERE TABLE_SCHEMA = BINARY DATABASE() 
+          AND TABLE_NAME = BINARY tbl_name 
+          AND COLUMN_NAME = BINARY col_name
     ) THEN
         SET @sql = CONCAT('ALTER TABLE `', tbl_name, '` MODIFY COLUMN `', col_name, '` ', col_def);
         PREPARE stmt FROM @sql;
